@@ -43,7 +43,7 @@ module Fastlane
 
       def self.get_beginning_of_next_sprint(params)
         # command to get first commit
-        git_command = "git rev-list --max-parents=0 HEAD"
+        git_command = "git rev-list --max-parents=0 HEAD | tail -n 1"
 
         tag = get_last_tag(match: params[:match], debug: params[:debug])
 
@@ -75,7 +75,12 @@ module Fastlane
 
         # Tag's format is v2.3.4-5-g7685948
         # See git describe man page for more info
-        tag_name = tag.split('-')[0...-2].join('-').strip
+        # tag_name = tag.split('-')[0...-2].join('-').strip
+        tag_name = tag
+        if tag.split('-').length >= 2 then
+          tag_name = tag.split('-')[0...-2].join('-').strip
+        end
+
         parsed_version = tag_name.match(params[:tag_version_match])
 
         if parsed_version.nil?
@@ -190,7 +195,7 @@ module Fastlane
       end
 
       def self.is_codepush_friendly(params)
-        git_command = "git rev-list --max-parents=0 HEAD"
+        git_command = "git rev-list --max-parents=0 HEAD | tail -n 1"
         # Begining of the branch is taken for codepush analysis
         hash_lines = Actions.sh("#{git_command} | wc -l", log: params[:debug]).chomp
         hash = Actions.sh(git_command, log: params[:debug]).chomp
